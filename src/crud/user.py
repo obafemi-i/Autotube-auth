@@ -20,10 +20,15 @@ def create_user(db: Session, obj_in: UserCreate) -> UserResponse:
 
 
 def get_by_email(db: Session, email: str) -> UserResponse | None:
-    return db.query(User).filter(User.email == email).first()
-
+    user = db.query(User).filter(User.email == email).first()
+    return user
 
 
 def get_all_users(db: Session) -> list[UserResponse]:
     users = db.query(User).all()
     return users
+
+
+def get_by_id(id: int, db: Session) -> UserResponse:
+    user = db.query(User).filter(User.id == id).first()
+    return user

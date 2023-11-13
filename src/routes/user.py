@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from crud.user import get_all_users
+from crud.user import get_all_users, create_user, get_by_id, get_by_email
 from security.oauth import get_current_user
+from security.hashing import verify_password
+from security.tokens import create_access_token
 from schemas.user import UserResponse, UserCreate
 from config.database import Base, engine, SessionLocal
+from models.user import User
 
 
 router = APIRouter()
@@ -19,15 +23,51 @@ def get_db():
         db.close()
 
 
+
 @router.get('/')
 def read_root():
     return 'Server is running..'
 
 
+
 @router.get('/users', response_model=list[UserResponse])
-def users(db: Session= Depends(get_db)):
+def all_users(db: Session= Depends(get_db), current_user: UserCreate = Depends(get_current_user)):
     users = get_all_users(db)
     return users
+
+
+
+@router.get('/user/{email}', response_model=UserResponse)
+def by_email(email: str, db: Session = Depends(get_db)):
+    user = get_by_email(email=email, db=db)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f'No user with email {email}')
+    return user
+
+
+
+@router.post('/create')
+def create(db: Session = Depends(get_db)):
+    pass
+
+
+
+@router.post('/login')
+def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == request.username).first()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Invalid login details')
+    
+    if not verify_password(request.password, user.password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail='Invalid login derails')
+    
+    access_token = create_access_token(data={'sub': user.email})
+    return {'access_token': access_token, 'token_type': 'bearer'}
+
 
 
 # @router.post("/password-recovery/{email}", response_model=schemas.Msg)
