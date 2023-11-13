@@ -47,9 +47,10 @@ def by_email(email: str, db: Session = Depends(get_db)):
 
 
 
-@router.post('/create')
-def create(db: Session = Depends(get_db)):
-    pass
+@router.post('/create', response_model=UserResponse)
+def create(request: UserCreate, db: Session = Depends(get_db)):
+    user = create_user(db, obj_in=request)
+    return user
 
 
 

@@ -9,7 +9,7 @@ from security. hashing import get_password_hash
 def create_user(db: Session, obj_in: UserCreate) -> UserResponse:
     db_obj = User(
         email=obj_in.email,
-        hashed_password=get_password_hash(obj_in.password),
+        password=get_password_hash(obj_in.password),
         # first_name=obj_in.first_name
     )
     db.add(db_obj)
