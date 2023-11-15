@@ -25,11 +25,13 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 def verify_token(token: str, credentials_exception):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print('payload be',payload)
         email: str = payload.get("sub")
+        name: str = payload.get("name")
 
         if email is None:
             raise credentials_exception
-        token_data = TokenData(email=email)
+        token_data = TokenData(email=email, first_name=name)
 
     except JWTError:
         raise credentials_exception

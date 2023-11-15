@@ -33,6 +33,7 @@ def read_root():
 @router.get('/users', response_model=list[UserResponse])
 def all_users(db: Session= Depends(get_db), current_user: UserCreate = Depends(get_current_user)):
     users = get_all_users(db)
+    print('current user', current_user)
     return users
 
 
@@ -64,9 +65,9 @@ def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(
     
     if not verify_password(request.password, user.password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail='Invalid login derails')
+                            detail='Invalid login details')
     
-    access_token = create_access_token(data={'sub': user.email})
+    access_token = create_access_token(data={'sub': user.email, 'name': user.first_name, 'account': user.account})
     return {'access_token': access_token, 'token_type': 'bearer'}
 
 
